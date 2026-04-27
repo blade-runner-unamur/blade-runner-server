@@ -31,7 +31,7 @@ public class SecurityConfig {
                         .anyRequest().permitAll() // Maybe change to authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
-                        .defaultSuccessUrl("/FFRONTEND REDIRECTION", true) // TODO
+                        .defaultSuccessUrl("http://localhost:3000/dashboard", true) // TODO
                 )
 
 
