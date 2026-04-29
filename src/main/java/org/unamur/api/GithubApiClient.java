@@ -1,40 +1,32 @@
 package org.unamur.api;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.HttpHeaders;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestClient;
+import org.springframework.web.reactive.function.client.WebClient;
 import org.unamur.config.AppProperties;
-import org.unamur.config.TokenProperties;
 
 import java.util.List;
 import java.util.Map;
 
 @Slf4j
+@AllArgsConstructor
 @Component
 public class GithubApiClient {
 
-    private final RestClient client;
+    private final WebClient githubWebClient;
 
     private final AppProperties appProperties;
 
     private final static String WORKFLOW_ID = "scanner.yaml";
 
-    public GithubApiClient(TokenProperties tokenProperties, AppProperties appProperties) {
-        this.appProperties = appProperties;
-        this.client = RestClient.builder()
-                .baseUrl(appProperties.getGithubUrl())
-                .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + tokenProperties.getGithubPat())
-                .build();
-    }
-
     public List<Map<String, Object>> getOpenPrForProject(String owner, String repository) {
-        return client.get()
+        return githubWebClient.get()
                 .uri("/repos/{owner}/{repo}/pulls?state=open", owner, repository)
                 .retrieve()
-                .body(new ParameterizedTypeReference<>() {
-                });
+                .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {})
+                .block();
     }
 
     public void triggerScannerForPullRequest(Map<String, Object> variables) {
@@ -42,12 +34,13 @@ public class GithubApiClient {
 
         log.info("Variables: {}", variables);
 
-        client.post()
+        githubWebClient.post()
                 .uri("/repos/{githubOwner}/{githubWorkerRepo}/actions/workflows/{workflowId}/dispatches", appProperties.getGithubOwner(), appProperties.getGithubWorkerRepo(), WORKFLOW_ID)
                 .header(org.springframework.http.HttpHeaders.ACCEPT, "application/vnd.github+json")
-                .body(variables)
+                .bodyValue(variables)
                 .retrieve()
-                .toBodilessEntity();
+                .toBodilessEntity()
+                .block();
     }
 
 }

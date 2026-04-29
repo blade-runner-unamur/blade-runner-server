@@ -22,22 +22,15 @@ public class SecurityConfig {
         http
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable()) // Disable CSRF for APIs
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/error").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers("/ws-metrics/**").permitAll()
-                        .requestMatchers("/metrics/**").authenticated() // Protect your endpoint
+                        .requestMatchers("/metrics/**", "/github-api/**").authenticated() // Protect your endpoint
                         .anyRequest().permitAll() // Maybe change to authenticated()
                 )
-                .oauth2Login(oauth2 -> oauth2
-                        .defaultSuccessUrl("http://localhost:3000/dashboard", true) // TODO
-                )
-
-
-                .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin())) // TODO - Remove ?
-                .addFilterBefore(new ApiKeyFilter(tokenProperties.getBackendToken()), UsernamePasswordAuthenticationFilter.class);      // TODO - Remove ?
-
+                .oauth2Login(Customizer.withDefaults());
         return http.build();
     }
 }

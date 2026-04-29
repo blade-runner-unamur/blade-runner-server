@@ -13,6 +13,8 @@ paths:
     get:
       summary: Get user's GitHub repositories
       operationId: getMyRepos
+      security:
+        - githubOAuth: [read:user, repo]
       tags:
         - Github
       responses:
@@ -29,6 +31,8 @@ paths:
     get:
       summary: Get authenticated user information
       operationId: getUserInfo
+      security:
+        - githubOAuth: [read:user]
       tags:
         - Github
       responses:
@@ -103,7 +107,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PullRequestMetrics'
+                $ref: '#/components/schemas/PrMetrics'
         '404':
           description: Not found
           content:
@@ -198,6 +202,15 @@ components:
     BearerAuth:
       type: http
       scheme: bearer
+    githubOAuth:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://github.com/login/oauth/authorize
+          tokenUrl: https://github.com/login/oauth/access_token
+          scopes:
+            read:user: Read user profile
+            repo: Read repositories
   schemas:
     ErrorResponse:
       type: object
@@ -213,7 +226,7 @@ components:
           type: string
         path:
           type: string
-    PullRequestMetrics:
+    PrMetrics:
       type: object
       properties:
         sonarMetrics:

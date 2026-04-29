@@ -1,12 +1,10 @@
 package org.unamur.dto;
 
-import lombok.Setter;
-
 import java.util.List;
 
-public record PrMetrics(
+public record PrMetricsDto(
    int criticalAlerts,
    int totalImpactedFiles,
    double riskScore,
-   List<ImpactedClass> impactedClasses
+   List<ImpactedClassDto> impactedClassDtos
 ) {}

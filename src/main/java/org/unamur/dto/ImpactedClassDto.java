@@ -1,6 +1,6 @@
 package org.unamur.dto;
 
-public record ImpactedClass(
+public record ImpactedClassDto(
         String className,
         int alertCount,
         boolean inNewFile

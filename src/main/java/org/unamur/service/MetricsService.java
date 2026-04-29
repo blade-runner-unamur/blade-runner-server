@@ -1,15 +1,16 @@
 package org.unamur.service;
 
 import org.springframework.web.multipart.MultipartFile;
-import org.unamur.model.PullRequestMetrics;
+import org.unamur.model.PrMetrics;
 
 import java.net.URI;
 import java.util.Map;
 
 public interface MetricsService {
-    PullRequestMetrics getMetrics(URI projectUrl, String prId);
+    PrMetrics getMetrics(URI projectUrl, String prId);
 
-    void createOrUpdateMetrics(String prId, String projectUrl, MultipartFile sarifFile, MultipartFile impactedFiles);
+    void createOrUpdateMetrics(String prId, String projectUrl, Map<String, String> sonarMetrics,
+                               MultipartFile sarifFile, MultipartFile impactedFiles,
+                               MultipartFile callGraphCsv, String dotFile);
 
-    void createOrUpdateMetrics(String prId, String projectUrl, Map<String, String> sonarMetrics, String dotFile);
 }
