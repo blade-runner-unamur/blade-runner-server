@@ -39,5 +39,4 @@ public class MetricsController implements MetricsApi {
         template.convertAndSend("/topic/metrics/%s".formatted(prId), "READY");
         return ResponseEntity.ok().build();
     }
-
 }

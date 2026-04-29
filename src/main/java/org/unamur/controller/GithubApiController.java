@@ -28,7 +28,6 @@ public class GithubApiController implements GithubApi {
         this.authorizedClientService = authorizedClientService;
     }
 
-
     @Override
     public ResponseEntity<Map<String, Object>> getUserInfo() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

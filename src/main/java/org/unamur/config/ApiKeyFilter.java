@@ -11,6 +11,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.Collections;
 
+
+// Not used anymore
+@Deprecated
 public class ApiKeyFilter extends OncePerRequestFilter {
     private final String requiredToken;
 

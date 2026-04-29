@@ -22,7 +22,6 @@ public class RemoteRepositoryController implements RemoteRepositoryApi {
     public ResponseEntity<List<PullRequestInfo>> listPrGet(URI projectUrl) {
         var data = remoteRepositoryService.listPR(projectUrl.toString());
 
-        // Map the GitHub API response to a clean DTO for your frontend
         List<PullRequestInfo> dtos = data.stream().map(pr -> {
             var pullRequestInfo = new PullRequestInfo();
             pullRequestInfo.setId(pr.get("number").toString());
