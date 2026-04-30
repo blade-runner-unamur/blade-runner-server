@@ -1,32 +1,31 @@
 package org.unamur.controller;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.unamur.api.GithubApi;
 import org.unamur.model.GithubRepo;
+import org.unamur.service.RemoteRepositoryService;
 
 import java.util.List;
 import java.util.Map;
 
 @Slf4j
-//@RequiredArgsConstructor
+@RequiredArgsConstructor
 @RestController
 public class GithubApiController implements GithubApi {
 
     private final WebClient githubWebClient;
+    private final RemoteRepositoryService remoteRepositoryService;
     private final OAuth2AuthorizedClientService authorizedClientService;
-
-    public GithubApiController(WebClient githubWebClient, OAuth2AuthorizedClientService authorizedClientService, OAuth2AuthorizedClientManager authorizedClientManager) {
-        this.githubWebClient = githubWebClient;
-        this.authorizedClientService = authorizedClientService;
-    }
 
     @Override
     public ResponseEntity<Map<String, Object>> getUserInfo() {
@@ -39,18 +38,19 @@ public class GithubApiController implements GithubApi {
 
     @Override
     public ResponseEntity<List<GithubRepo>> getMyRepos() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null) {
-            return ResponseEntity.status(401).build();
-        }
-
         List<GithubRepo> repos = githubWebClient.get()
                 .uri("/user/repos")
                 .retrieve()
                 .bodyToFlux(GithubRepo.class)
                 .collectList()
                 .block();
-
         return ResponseEntity.ok(repos);
+    }
+
+    @Override
+    public ResponseEntity<Resource> getPullRequestDiff(String owner, String repository, String pullRequestNumber) {
+        log.info("Fetching diff for PR #{} in {}/{}", pullRequestNumber, owner, repository);
+        String diff = remoteRepositoryService.getPullRequestDiff(owner, repository, pullRequestNumber);
+        return ResponseEntity.ok(new ByteArrayResource(diff.getBytes()));
     }
 }

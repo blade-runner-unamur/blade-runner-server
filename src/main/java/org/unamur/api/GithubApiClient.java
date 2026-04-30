@@ -31,9 +31,7 @@ public class GithubApiClient {
 
     public void triggerScannerForPullRequest(Map<String, Object> variables) {
         log.info("Triggering /repos/%s/%s/actions/workflows/%s/dispatches".formatted(appProperties.getGithubOwner(), appProperties.getGithubWorkerRepo(), WORKFLOW_ID));
-
         log.info("Variables: {}", variables);
-
         githubWebClient.post()
                 .uri("/repos/{githubOwner}/{githubWorkerRepo}/actions/workflows/{workflowId}/dispatches", appProperties.getGithubOwner(), appProperties.getGithubWorkerRepo(), WORKFLOW_ID)
                 .header(org.springframework.http.HttpHeaders.ACCEPT, "application/vnd.github+json")
@@ -43,4 +41,14 @@ public class GithubApiClient {
                 .block();
     }
 
+    public String getPullRequestDiff(String owner, String repository, int pullNumber) {
+        log.info("Fetching diff for PR #{} in {}/{}", pullNumber, owner, repository);
+
+        return githubWebClient.get()
+                .uri("/repos/{owner}/{repo}/pulls/{pullNumber}", owner, repository, pullNumber)
+                .header(org.springframework.http.HttpHeaders.ACCEPT, "application/vnd.github.v3.diff")
+                .retrieve()
+                .bodyToMono(String.class)
+                .block();
+    }
 }

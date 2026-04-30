@@ -2,6 +2,7 @@ package org.unamur.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.web.reactive.function.client.ServletOAuth2AuthorizedClientExchangeFilterFunction;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -12,6 +13,7 @@ import javax.inject.Named;
 public class GithubClientConfig {
 
     @Bean
+    @Profile("!unsecured")
     @Named("githubWebClient")
     public WebClient githubWebClient(OAuth2AuthorizedClientManager authorizedClientManager) {
         ServletOAuth2AuthorizedClientExchangeFilterFunction oauth2Client =
@@ -21,6 +23,15 @@ public class GithubClientConfig {
         return WebClient.builder()
                 .baseUrl("https://api.github.com")
                 .apply(oauth2Client.oauth2Configuration())
+                .build();
+    }
+
+    @Bean
+    @Profile("unsecured")
+    @Named("unsecuredGithubWebClient")
+    public WebClient unsecuredGithubWebClient() {
+        return WebClient.builder()
+                .baseUrl("https://api.github.com")
                 .build();
     }
 }

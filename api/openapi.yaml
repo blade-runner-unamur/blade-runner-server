@@ -44,6 +44,123 @@ paths:
                 type: object
                 additionalProperties: true
 
+  /github-api/diff:
+    get:
+      summary: Retrieve Pull Request Diff
+      description: Fetches the raw diff string for a specific Pull Request using the GitHub API.
+      operationId: getPullRequestDiff
+      tags:
+        - Github
+      parameters:
+        - name: owner
+          in: query
+          required: true
+          description: The GitHub repository owner (username or organization name).
+          schema:
+            type: string
+            example: "octocat"
+        - name: repository
+          in: query
+          required: true
+          description: The name of the GitHub repository.
+          schema:
+            type: string
+            example: "Hello-World"
+        - name: pullRequestNumber
+          in: query
+          required: true
+          description: The pull request number/ID.
+          schema:
+            type: string
+            example: "123"
+
+      responses:
+        '200':
+          description: Successfully retrieved SVG diff representation.
+          content:
+            image/svg+xml:
+              schema:
+                type: string
+                format: binary
+                description: The raw SVG XML content.
+        '400':
+          description: Bad Request - Missing or invalid query parameters.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found - The repository or pull request does not exist, or the backend lacks permissions to access it.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal Server Error - Backend failed to communicate with the upstream GitHub API.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /pr-metadata/files:
+    get:
+      summary: Retrieve File Diff Metadata
+      description: Fetches a specific file and all of its associated chunks. Used when a user clicks the "wrapper square" in the SVG.
+      operationId: getFileDiffMetadata
+      tags:
+        - Interactive PR
+      parameters:
+        - $ref: '#/components/parameters/OwnerParam'
+        - $ref: '#/components/parameters/RepoParam'
+        - $ref: '#/components/parameters/PrNumberParam'
+        - $ref: '#/components/parameters/FilenameParam'
+      responses:
+        '200':
+          description: Successfully retrieved the file metadata and its chunks.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileDiffMetadata'
+        '404':
+          description: File not found in this Pull Request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /pr-metadata/chunks:
+    get:
+      summary: Retrieve Specific Chunk Diff Metadata
+      description: Fetches the specific lines of code for a single modified chunk. Used when a user clicks a small green or red square inside the SVG.
+      operationId: getChunkDiffMetadata
+      tags:
+        - Interactive PR
+      parameters:
+        - $ref: '#/components/parameters/OwnerParam'
+        - $ref: '#/components/parameters/RepoParam'
+        - $ref: '#/components/parameters/PrNumberParam'
+        - $ref: '#/components/parameters/FilenameParam'
+        - name: chunkIndex
+          in: query
+          required: true
+          description: The sequential index of the chunk within the file.
+          schema:
+            type: integer
+            example: 0
+      responses:
+        '200':
+          description: Successfully retrieved the chunk metadata.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChunkDiffMetadata'
+        '404':
+          description: Chunk not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /metrics:
     post:
       summary: Receive metrics using github webhook
@@ -211,6 +328,39 @@ components:
           scopes:
             read:user: Read user profile
             repo: Read repositories
+  parameters:
+    OwnerParam:
+      name: owner
+      in: query
+      required: true
+      description: The GitHub repository owner.
+      schema:
+        type: string
+        example: "octocat"
+    RepoParam:
+      name: repository
+      in: query
+      required: true
+      description: The name of the GitHub repository.
+      schema:
+        type: string
+        example: "Hello-World"
+    PrNumberParam:
+      name: pullRequestNumber
+      in: query
+      required: true
+      description: The pull request number/ID.
+      schema:
+        type: integer
+        example: 42
+    FilenameParam:
+      name: filename
+      in: query
+      required: true
+      description: The full path of the file as recorded in the Git diff.
+      schema:
+        type: string
+        example: "src/main/App.java"
   schemas:
     ErrorResponse:
       type: object
@@ -320,3 +470,57 @@ components:
           type: string
         description:
           type: string
+
+    ChunkDiffMetadata:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1042
+        chunkIndex:
+          type: integer
+          example: 0
+        addedLinesCount:
+          type: integer
+          example: 5
+        deletedLinesCount:
+          type: integer
+          example: 2
+        rawCodeLines:
+          type: string
+          description: The actual text representation of the diff block.
+          example: |
+            @@ -1,3 +1,4 @@
+            -public class App {
+            +public class App implements Runnable {
+            +    // Added implementation
+             }
+      required:
+        - id
+        - chunkIndex
+        - rawCodeLines
+
+    FileDiffMetadata:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 305
+        filename:
+          type: string
+          example: "src/main/App.java"
+        status:
+          type: string
+          enum: [ NEW, DELETED, MODIFIED ]
+          example: "MODIFIED"
+        chunks:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChunkDiffMetadata'
+      required:
+        - id
+        - filename
+        - status
+        - chunks
