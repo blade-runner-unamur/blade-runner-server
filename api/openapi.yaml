@@ -390,6 +390,9 @@ components:
           format: graphviz-dot
           description: "The Graphviz .dot string representing data flow"
           example: "digraph G { node1 -> node2 }"
+        codeqlAlerts:
+          type: string
+          description: "JSON string containing extracted CodeQL alerts"
     GithubMetrics:
       type: object
       properties:

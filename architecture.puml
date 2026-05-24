@@ -1,68 +1,64 @@
-@startuml Blade Runner Architecture
-!theme plain
+@startuml
 skinparam componentStyle rectangle
-skinparam shadowing false
-skinparam DefaultFontName Arial
-skinparam ArrowColor #4A4A4A
 
-title Blade Runner Architecture
+package "Blade Runner Server" {
+    package "API / Controllers" {
+        [GithubApiController]
+        [RemoteRepositoryController]
+        [MetricsController]
+        [InteractivePrController]
+        [GlobalExceptionHandler]
+    }
 
-actor "Developper" as User
+    package "Services" {
+        [RemoteRepositoryService]
+        [MetricsService]
+        [PrMetadataService]
+        [SonarService]
+        [CodeQLService]
+        [DiffVisualizerService]
+    }
 
-node "Frontend Dashboard" as Frontend #LightCyan
+    package "Persistence" {
+        [PullRequestMetadataRepository]
+        [FileDifMetadataRepository]
+        [PrScanResultRepository]
+        
+        database "H2 Database" {
+            [PullRequestMetadata]
+            [FileDiffMetadata]
+            [LineDiffMetadata]
+            [PrScanResult]
+        }
+    }
 
-package "GitHub Ecosystem" #WhiteSmoke {
-    node "Target Repository\n(Public)" as TargetRepo #White
-
-    component "GitHub Actions Worker\n(.github/workflows/scanner.yml)" as GHAction #LightGreen {
-        artifact "results.sarif\n(CodeQL)" as SarifFile
-        artifact "impacted_files.csv\n(Git Diff)" as ImpactedFiles
+    package "Config & Security" {
+        [SecurityConfig]
+        [ApiKeyFilter]
+        [WebSocketConfig]
     }
 }
 
-cloud "SonarCloud SaaS" as SonarCloud #LightSkyBlue
-
-package "Your Infrastructure" #WhiteSmoke {
-    node "Java Backend (Spring Boot)" as JavaApp #LightYellow {
-        interface "REST API\n(/v1/projects/...)" as API
-        interface "Webhook Endpoint\n(/v1/metrics/receive)" as Webhook
-
-        component "Metrics Processing Service" as Processing
-        component "Sonar API Client" as SonarClient
-        component ".dot Graph Generator" as GraphGen
-    }
-
-    database "Relational Database" as DB #White {
-        rectangle "PrMetricsRecord\n- CodeQL Alerts\n- Sonar Quality Data\n- .dot text string" as Table
-    }
+package "External Systems" {
+    [GitHub API] <<External>>
+    [SonarCloud] <<External>>
+    [Blade Runner Worker] <<External>>
 }
 
-' --- User & Frontend Flow ---
-User --> Frontend : PR Reviewing
-Frontend --> API : GET Metrics
+package "Clients" {
+    [Frontend / Web UI]
+}
 
-' --- The Execution Flow ---
-API -up-> GHAction : 1. POST /dispatches\n(Triggers scan w/ projectUrl & prId)
-GHAction -up-> TargetRepo : 2. Clone repo & Checkout PR
+' Relationships
+[Frontend / Web UI] --> [API / Controllers] : REST / WebSocket
+[API / Controllers] --> [Services]
+[Services] --> [Persistence]
+[Services] --> [GitHub API]
+[Services] --> [SonarCloud]
+[MetricsController] ..> [Blade Runner Worker] : Receives results (SARIF, Call Graph)
+[RemoteRepositoryService] ..> [Blade Runner Worker] : Triggers Scan
 
-GHAction -right-> SonarCloud : 3. Push analysis via Maven\n(mvn sonar:sonar)
-GHAction --> ImpactedFiles : 4. git diff --name-only
-GHAction --> SarifFile : 5. codeql analyze
-
-' --- The Webhook / Push Flow ---
-GHAction -down-> Webhook : 6. POST Multipart Form\n(Sends SARIF & Diff files)
-Webhook --> Processing : 7. Passes files for parsing
-
-' --- Backend Enrichment ---
-Processing -> SonarClient
-SonarClient -up-> SonarCloud : 8. GET /api/measures/component\n(Fetch Bugs, Coverage for PR)
-SonarCloud ..> SonarClient : JSON Response
-
-Processing -> GraphGen : 9. Filter SARIF by Diff\n& Generate graph
-GraphGen --> Processing : .dot string
-
-' --- Persistence ---
-Processing -down-> DB : 10. Persist combined data
-DB -[hidden]-> Table
+[GithubApiController] --( OAuth2 / API Key )
+[SecurityConfig] ..> [ApiKeyFilter]
 
 @enduml

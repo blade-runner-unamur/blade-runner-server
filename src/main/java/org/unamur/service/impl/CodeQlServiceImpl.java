@@ -9,6 +9,10 @@ import org.unamur.service.CodeQLService;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @Slf4j
 @Service
@@ -57,6 +61,35 @@ public class CodeQlServiceImpl implements CodeQLService {
             return dotBuilder.toString();
         } catch (IOException e) {
             throw new RuntimeException("Failed to read the uploaded CSV file.", e);
+        }
+    }
+
+    @Override
+    public String extractAlerts(String sarifJson) {
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            JsonNode root = mapper.readTree(sarifJson);
+            ArrayNode alertsArray = mapper.createArrayNode();
+
+            JsonNode runs = root.get("runs");
+            if (runs != null && runs.isArray()) {
+                for (JsonNode run : runs) {
+                    JsonNode results = run.get("results");
+                    if (results != null && results.isArray()) {
+                        for (JsonNode result : results) {
+                            ObjectNode alert = mapper.createObjectNode();
+                            alert.put("ruleId", result.path("ruleId").asText());
+                            alert.put("message", result.path("message").path("text").asText());
+                            alert.set("location", result.path("locations").path(0).path("physicalLocation"));
+                            alertsArray.add(alert);
+                        }
+                    }
+                }
+            }
+            return mapper.writeValueAsString(alertsArray);
+        } catch (IOException e) {
+            log.error("Error extracting alerts from SARIF JSON", e);
+            return "[]";
         }
     }
 }

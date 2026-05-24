@@ -34,6 +34,7 @@ public class PrMetricsMapper {
             sonarData.setAnalysisDate(entity.getScanTimestamp().atOffset(ZoneOffset.UTC));
         }
         dto.setSonarMetrics(sonarData);
+        dto.setCodeqlAlerts(entity.getCodeqlAlerts());
 
         if (entity.getRawSarifJson() != null) {
             try {

@@ -35,7 +35,13 @@ public class MetricsController implements MetricsApi {
     public ResponseEntity<Void> postMetrics(String prId, String projectUrl, MultipartFile sarifFile, MultipartFile impactedFiles, MultipartFile callGraphCsv) {
         Map<String, String> sonarMetrics = sonarService.getSonarMetrics();
         String dotFile = codeQlService.createDotFile(callGraphCsv);
-        metricsService.createOrUpdateMetrics(prId, projectUrl, sonarMetrics, callGraphCsv, sarifFile, impactedFiles, dotFile);
+        String alerts = "[]";
+        try {
+            alerts = codeQlService.extractAlerts(new String(sarifFile.getBytes(), java.nio.charset.StandardCharsets.UTF_8));
+        } catch (java.io.IOException e) {
+            log.error("Error reading sarif file", e);
+        }
+        metricsService.createOrUpdateMetrics(prId, projectUrl, sonarMetrics, sarifFile, impactedFiles, callGraphCsv, dotFile, alerts);
         template.convertAndSend("/topic/metrics/%s".formatted(prId), "READY");
         return ResponseEntity.ok().build();
     }

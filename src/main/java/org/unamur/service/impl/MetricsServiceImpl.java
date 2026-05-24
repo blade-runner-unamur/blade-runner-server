@@ -35,7 +35,7 @@ public class MetricsServiceImpl implements MetricsService {
     }
 
     @Override
-    public void createOrUpdateMetrics(String prId, String projectUrl, Map<String, String> sonarMetrics, MultipartFile sarifFile, MultipartFile impactedFiles, MultipartFile callGraphCsv, String dotFile) {
+    public void createOrUpdateMetrics(String prId, String projectUrl, Map<String, String> sonarMetrics, MultipartFile sarifFile, MultipartFile impactedFiles, MultipartFile callGraphCsv, String dotFile, String codeqlAlerts) {
         try {
             String rawSarifJson = new String(sarifFile.getBytes(), StandardCharsets.UTF_8);
             String rawCsv = new String(impactedFiles.getBytes(), StandardCharsets.UTF_8);
@@ -57,7 +57,7 @@ public class MetricsServiceImpl implements MetricsService {
             scanResult.setVulnerabilities(Integer.valueOf(sonarMetrics.get("vulnerabilities")));
             scanResult.setSecurityHotspots(Integer.valueOf(sonarMetrics.get("security_hotspots")));
             scanResult.setDotFile(dotFile);
-
+            scanResult.setCodeqlAlerts(codeqlAlerts);
 
             if (scanResult.getId() != null) {
                 scanResult.setRawSarifJson(rawSarifJson);
