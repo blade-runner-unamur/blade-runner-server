@@ -1,7 +1,0 @@
-config:
-
-  cloneDir: src/main/resources/clone
-
-  databaseDir: /mnt/g/idea/spring-mem/src/main/resources/database
-
-  queryDir: /mnt/g/idea/spring-mem/src/main/resources/query
