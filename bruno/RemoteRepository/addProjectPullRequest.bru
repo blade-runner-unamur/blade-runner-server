@@ -1,0 +1,16 @@
+meta {
+  name: Add a new project for metrics scanning
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:8080/addProjectPullRequest
+  body: multipartForm
+  auth: none
+}
+
+body:multipart-form {
+  projectUrl: https://github.com/org/repo
+  prId: 12345
+}

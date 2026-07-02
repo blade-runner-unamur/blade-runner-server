@@ -1,0 +1,17 @@
+meta {
+  name: Retrieve Pull Request Diff
+  type: http
+  seq: 3
+}
+
+get {
+  url: http://localhost:8080/github-api/diff
+  body: none
+  auth: none
+}
+
+params:query {
+  owner: octocat
+  repository: Hello-World
+  pullRequestNumber: 123
+}

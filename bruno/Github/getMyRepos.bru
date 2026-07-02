@@ -1,0 +1,11 @@
+meta {
+  name: Get user's GitHub repositories
+  type: http
+  seq: 1
+}
+
+get {
+  url: http://localhost:8080/github-api/repos
+  body: none
+  auth: inherit
+}

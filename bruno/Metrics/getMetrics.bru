@@ -1,0 +1,16 @@
+meta {
+  name: Get metrics for project
+  type: http
+  seq: 2
+}
+
+get {
+  url: http://localhost:8080/metrics
+  body: none
+  auth: none
+}
+
+params:query {
+  projectUrl: https://github.com/pjalbrz16/mem.git
+  prId: 123
+}

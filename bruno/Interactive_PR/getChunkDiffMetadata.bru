@@ -1,0 +1,19 @@
+meta {
+  name: Retrieve Specific Chunk Diff Metadata
+  type: http
+  seq: 2
+}
+
+get {
+  url: http://localhost:8080/pr-metadata/chunks
+  body: none
+  auth: none
+}
+
+params:query {
+  owner: octocat
+  repository: Hello-World
+  pullRequestNumber: 42
+  filename: src/main/App.java
+  chunkIndex: 0
+}

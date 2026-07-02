@@ -37,6 +37,6 @@ token:
 app:
   url: ${APP_URL:http://localhost:8080}
   github-url: 'https://api.github.com'
-  github-owner: 'pjalbrz16'
+  github-owner: 'blade-runner-unamur'
   github-worker-repo: 'blade-runner-worker'
-  sonar-component-key: 'pjalbrz16_github-worker-action'
+  sonar-component-key: 'blade-runner-unamur'

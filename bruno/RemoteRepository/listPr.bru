@@ -1,0 +1,15 @@
+meta {
+  name: Get list of Pull Requests
+  type: http
+  seq: 1
+}
+
+get {
+  url: http://localhost:8080/listPr
+  body: none
+  auth: none
+}
+
+params:query {
+  projectUrl: https://github.com/pjalbrz16/mem.git
+}

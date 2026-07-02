@@ -1,0 +1,23 @@
+meta {
+  name: Receive metrics using github webhook
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:8080/metrics
+  body: multipartForm
+  auth: bearer
+}
+
+auth:bearer {
+  token: 
+}
+
+body:multipart-form {
+  prId: 
+  projectUrl: 
+  sarifFile: @file()
+  impactedFiles: @file()
+  callGraphCsv: @file()
+}
