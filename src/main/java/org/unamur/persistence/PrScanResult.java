@@ -53,6 +53,10 @@ public class PrScanResult {
     @Column(columnDefinition = "TEXT")
     private String codeqlAlerts;
 
+    @Lob
+    @Column(columnDefinition = "TEXT")
+    private String prSummary;
+
     @CreationTimestamp
     @Column(name = "scan_timestamp", updatable = false)
     private LocalDateTime scanTimestamp;

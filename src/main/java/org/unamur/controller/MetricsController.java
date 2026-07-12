@@ -13,6 +13,7 @@ import org.unamur.service.MetricsService;
 import org.unamur.service.SonarService;
 
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 @Slf4j
@@ -32,16 +33,20 @@ public class MetricsController implements MetricsApi {
     }
 
     @Override
-    public ResponseEntity<Void> postMetrics(String prId, String projectUrl, MultipartFile sarifFile, MultipartFile impactedFiles, MultipartFile callGraphCsv) {
+    public ResponseEntity<Void> postMetrics(String prId, String projectUrl, MultipartFile sarifFile, MultipartFile impactedFiles, MultipartFile callGraphCsv, MultipartFile summary) {
         Map<String, String> sonarMetrics = sonarService.getSonarMetrics();
         String dotFile = codeQlService.createDotFile(callGraphCsv);
         String alerts = "[]";
+        String prSummaryText = "";
         try {
+            if (summary != null) {
+                prSummaryText = new String(summary.getBytes(), StandardCharsets.UTF_8);
+            }
             alerts = codeQlService.extractAlerts(new String(sarifFile.getBytes(), java.nio.charset.StandardCharsets.UTF_8));
         } catch (java.io.IOException e) {
-            log.error("Error reading sarif file", e);
+            log.error("Error reading input files", e);
         }
-        metricsService.createOrUpdateMetrics(prId, projectUrl, sonarMetrics, sarifFile, impactedFiles, callGraphCsv, dotFile, alerts);
+        metricsService.createOrUpdateMetrics(prId, projectUrl, sonarMetrics, sarifFile, impactedFiles, callGraphCsv, dotFile, alerts, prSummaryText);
         template.convertAndSend("/topic/metrics/%s".formatted(prId), "READY");
         return ResponseEntity.ok().build();
     }

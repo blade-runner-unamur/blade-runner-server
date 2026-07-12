@@ -393,6 +393,9 @@ components:
         codeqlAlerts:
           type: string
           description: "JSON string containing extracted CodeQL alerts"
+        summary:
+          type: string
+          description: "The generated PR summary text file from the LLM step"
     GithubMetrics:
       type: object
       properties:
@@ -414,6 +417,10 @@ components:
           type: string
           format: binary
           description: The generated call_graph.csv from codeQL query results
+        summary:
+          type: string
+          format: binary
+          description: The generated PR summary text file from the LLM step
 
     SonarData:
       type: object

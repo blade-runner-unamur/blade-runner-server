@@ -35,6 +35,7 @@ public class PrMetricsMapper {
         }
         dto.setSonarMetrics(sonarData);
         dto.setCodeqlAlerts(entity.getCodeqlAlerts());
+        dto.setSummary(entity.getPrSummary());
 
         if (entity.getRawSarifJson() != null) {
             try {

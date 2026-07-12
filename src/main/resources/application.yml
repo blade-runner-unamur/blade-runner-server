@@ -24,18 +24,20 @@ spring:
       client:
         registration:
           github:
-            client-id: ${GITHUB_CLIENT_ID:}
-            client-secret: ${GITHUB_CLIENT_SECRET:}
+            client-id: ${GITHUB_CLIENT_ID:OAUTH_ID}
+            client-secret: ${GITHUB_CLIENT_SECRET:SOME_OAUTH_SECRET}
+            authorization-grant-type: client_credentials
             scope: read:user, repo
 
 token:
-  github-pat: ${GITHUB_PAT:}
-  backend-token: ${BACKEND_TOKEN:}
+  github-pat: ${GITHUB_PAT:THE_UNAMUR_PAT}
+  backend-token: ${BACKEND_TOKEN:SOME_BACKEND_TOKEN}
   frontend-token: ${FRONTEND_TOKEN:}
-  sonar-token: ${SONAR_TOKEN:}
+  sonar-token: ${SONAR_TOKEN:SOME_UNAMUR_TOKEN}
 
 app:
-  url: ${APP_URL:http://localhost:8080}
+  url: ${APP_URL:YOURS_OR_NGROK} # Used to expose the backend URL to the frontend and the git worker
+#  url: ${APP_URL:http://localhost:8080}
   github-url: 'https://api.github.com'
   github-owner: 'blade-runner-unamur'
   github-worker-repo: 'blade-runner-worker'
