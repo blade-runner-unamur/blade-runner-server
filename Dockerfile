@@ -39,6 +39,7 @@ COPY --from=build /build/target/spring-mem-1.0-SNAPSHOT.jar app.jar
 # Expose port 8080 (as per application.yml and openapi.yaml)
 EXPOSE 8080
 
+ENV JAVA_OPTS="--enable-native-access=ALL-UNNAMED"
 # Environment variables with defaults (as per application.yml)
 ENV APP_URL=http://localhost:8080
 # These should be provided at runtime

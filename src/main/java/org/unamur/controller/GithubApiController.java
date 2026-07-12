@@ -9,6 +9,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.security.oauth2.client.web.reactive.function.client.ServletOAuth2AuthorizedClientExchangeFilterFunction;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.unamur.api.GithubApi;
@@ -40,6 +41,7 @@ public class GithubApiController implements GithubApi {
     public ResponseEntity<List<GithubRepo>> getMyRepos() {
         List<GithubRepo> repos = githubWebClient.get()
                 .uri("/user/repos")
+                .attributes(ServletOAuth2AuthorizedClientExchangeFilterFunction.clientRegistrationId("github"))
                 .retrieve()
                 .bodyToFlux(GithubRepo.class)
                 .collectList()

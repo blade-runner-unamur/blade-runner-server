@@ -49,7 +49,7 @@ public class RemoteRepositoryServiceImpl implements RemoteRepositoryService {
                 "inputs", Map.of(
                         "prId", prId,
                         "projectUrl", projectUrl,
-                        "backendUrl", appProperties.getUrl()
+                        "backendUrl", appProperties.getUrl() // Should be the URL of the backend, the address given by ngrok !
                 )
         );
 
