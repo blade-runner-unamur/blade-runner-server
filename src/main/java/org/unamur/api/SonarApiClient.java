@@ -33,4 +33,18 @@ public class SonarApiClient {
                 .body(String.class);
 
     }
+
+    public String fetchIssues() {
+        return client.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/issues/search")
+                        .queryParam("componentKeys", appProperties.getSonarComponentKey())
+                        .queryParam("resolved", "false")
+                        .queryParam("ps", "100")
+                        .queryParam("s", "SEVERITY")
+                        .queryParam("asc", "false")
+                        .build())
+                .retrieve()
+                .body(String.class);
+    }
 }

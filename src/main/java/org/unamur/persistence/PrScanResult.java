@@ -57,6 +57,10 @@ public class PrScanResult {
     @Column(columnDefinition = "TEXT")
     private String prSummary;
 
+    @Lob
+    @Column(columnDefinition = "TEXT")
+    private String sonarIssues;
+
     @CreationTimestamp
     @Column(name = "scan_timestamp", updatable = false)
     private LocalDateTime scanTimestamp;

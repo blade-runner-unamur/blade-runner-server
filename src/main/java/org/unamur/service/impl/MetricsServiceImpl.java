@@ -1,5 +1,6 @@
 package org.unamur.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -9,6 +10,7 @@ import org.unamur.model.PrMetrics;
 import org.unamur.persistence.PrScanResult;
 import org.unamur.repository.PrScanResultRepository;
 import org.unamur.service.MetricsService;
+import org.unamur.service.SonarService;
 
 import java.io.IOException;
 import java.net.URI;
@@ -23,6 +25,9 @@ public class MetricsServiceImpl implements MetricsService {
 
     private final PrScanResultRepository prScanResultRepository;
     private final PrMetricsMapper prMetricsMapper;
+    private final SonarService sonarService;
+
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     @Override
     public PrMetrics getMetrics(URI projectUrl, String prId) {
@@ -59,6 +64,8 @@ public class MetricsServiceImpl implements MetricsService {
             scanResult.setDotFile(dotFile);
             scanResult.setCodeqlAlerts(codeqlAlerts);
             scanResult.setPrSummary(prSummary);
+            scanResult.setQualityGateStatus(sonarMetrics.get("alert_status"));
+            scanResult.setSonarIssues(fetchSonarIssuesJson(prId));
 
             if (scanResult.getId() != null) {
                 scanResult.setRawSarifJson(rawSarifJson);
@@ -73,5 +80,14 @@ public class MetricsServiceImpl implements MetricsService {
         }
 
         log.info("Processing metrics for project {} and PR {}", projectUrl, prId);
+    }
+
+    private String fetchSonarIssuesJson(String prId) {
+        try {
+            return OBJECT_MAPPER.writeValueAsString(sonarService.getIssues());
+        } catch (Exception e) {
+            log.warn("Could not fetch/serialize Sonar issues for PR {}: {}", prId, e.getMessage());
+            return null;
+        }
     }
 }

@@ -3,6 +3,7 @@ package org.unamur.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.web.reactive.function.client.ServletOAuth2AuthorizedClientExchangeFilterFunction;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -33,9 +34,13 @@ public class GithubClientConfig {
     @Profile("unsecured")
     @Named("unsecuredGithubWebClient")
     public WebClient unsecuredGithubWebClient(TokenProperties tokenProperties) {
-        return WebClient.builder()
+        WebClient.Builder builder = WebClient.builder()
                 .baseUrl("https://api.github.com")
-                .codecs(codecs -> codecs.defaultCodecs().maxInMemorySize(10 * 1024 * 1024))
-                .build();
+                .codecs(codecs -> codecs.defaultCodecs().maxInMemorySize(10 * 1024 * 1024));
+        String githubPat = tokenProperties.getGithubPat();
+        if (githubPat != null && !githubPat.isBlank()) {
+            builder.defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + githubPat);
+        }
+        return builder.build();
     }
 }

@@ -6,8 +6,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.unamur.model.PrMetrics;
 import org.unamur.model.SonarData;
+import org.unamur.model.SonarIssue;
 import org.unamur.persistence.PrScanResult;
 import java.time.ZoneOffset;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -30,6 +32,7 @@ public class PrMetricsMapper {
         sonarData.setVulnerabilities(entity.getVulnerabilities());
         sonarData.setSecurityHotspots(entity.getSecurityHotspots());
         sonarData.setQualityGateStatus(entity.getQualityGateStatus());
+        sonarData.setCoverage(entity.getCoverage());
         if (entity.getScanTimestamp() != null) {
             sonarData.setAnalysisDate(entity.getScanTimestamp().atOffset(ZoneOffset.UTC));
         }
@@ -44,6 +47,16 @@ public class PrMetricsMapper {
                 dto.setSarif(sarifMap);
             } catch (JsonProcessingException e) {
                 log.error("Error parsing SARIF JSON for PR ID: {}", entity.getPrId(), e);
+            }
+        }
+
+        if (entity.getSonarIssues() != null) {
+            try {
+                List<SonarIssue> issues = objectMapper.readValue(entity.getSonarIssues(), new TypeReference<List<SonarIssue>>() {
+                });
+                dto.setSonarIssues(issues);
+            } catch (JsonProcessingException e) {
+                log.error("Error parsing stored Sonar issues for PR ID: {}", entity.getPrId(), e);
             }
         }
 

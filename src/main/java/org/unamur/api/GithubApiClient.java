@@ -1,10 +1,17 @@
 package org.unamur.api;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.server.ResponseStatusException;
 import org.unamur.config.AppProperties;
 
 import java.util.List;
@@ -21,12 +28,33 @@ public class GithubApiClient {
 
     private final static String WORKFLOW_ID = "scanner.yaml";
 
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
     public List<Map<String, Object>> getOpenPrForProject(String owner, String repository) {
-        return githubWebClient.get()
+        String body = githubWebClient.get()
                 .uri("/repos/{owner}/{repo}/pulls?state=open", owner, repository)
+                .header(HttpHeaders.ACCEPT, "application/vnd.github+json")
                 .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {})
+                .onStatus(HttpStatusCode::isError, response ->
+                        response.bodyToMono(String.class).defaultIfEmpty("")
+                                .map(errorBody -> new ResponseStatusException(HttpStatus.BAD_GATEWAY,
+                                        "GitHub API returned %s for %s/%s: %s"
+                                                .formatted(response.statusCode(), owner, repository, errorBody))))
+                .bodyToMono(String.class)
                 .block();
+
+        try {
+            JsonNode root = OBJECT_MAPPER.readTree(body == null ? "" : body);
+            if (!root.isArray()) {
+                String message = root.path("message").asText(body);
+                throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
+                        "GitHub did not return a PR list for %s/%s: %s".formatted(owner, repository, message));
+            }
+            return OBJECT_MAPPER.convertValue(root, new TypeReference<List<Map<String, Object>>>() {});
+        } catch (JsonProcessingException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
+                    "Invalid JSON from GitHub for %s/%s".formatted(owner, repository), e);
+        }
     }
 
     public void triggerScannerForPullRequest(Map<String, Object> variables) {

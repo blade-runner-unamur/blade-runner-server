@@ -1,0 +1,40 @@
+# Blade Runner Server — local dev stack
+#
+# Usage:
+#   1. Copy `.env.example` → `.env` and fill in the secrets.
+#   2. docker compose up --build
+#
+# The backend exposes:
+#   - REST API + Actuator on http://localhost:8080
+#   - WebSocket (STOMP) on ws://localhost:8080/ws-metrics
+#
+# Persistence: H2 file DB lives in /app/data (volume `backend_data`),
+# survives container restarts and rebuilds.
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: blade-runner-server:local
+    container_name: blade-runner-backend
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    environment:
+      # JVM tuning — kept here because it's infra, not app config.
+      JAVA_TOOL_OPTIONS: "-Xms256m -Xmx768m"
+    volumes:
+      # Persist the H2 file database between container restarts (see Dockerfile /app/data)
+      - backend_data:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  backend_data:

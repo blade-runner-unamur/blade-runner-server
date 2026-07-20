@@ -51,10 +51,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .anyRequest().permitAll()
-                )
-//                .oauth2Login(Customizer.withDefaults());
-                .oauth2ResourceServer(Customizer.withDefaults());
-        ;
+                );
 
         // Disable X-Frame-Options because H2 runs inside an iframe.
         http.headers(headers -> headers.frameOptions(frame -> frame.disable()));

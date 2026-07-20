@@ -6,9 +6,12 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.unamur.api.SonarApiClient;
+import org.unamur.model.SonarIssue;
 import org.unamur.service.SonarService;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -23,6 +26,34 @@ public class SonarServiceImpl implements SonarService {
     public Map<String, String> getSonarMetrics() {
         String responseBody = sonarApiClient.fetchMetrics();
         return parseSonarResponse(responseBody);
+    }
+
+    @Override
+    public List<SonarIssue> getIssues() {
+        List<SonarIssue> issues = new ArrayList<>();
+        try {
+            JsonNode root = objectMapper.readTree(sonarApiClient.fetchIssues());
+            JsonNode arr = root.path("issues");
+            if (arr.isArray()) {
+                for (JsonNode node : arr) {
+                    SonarIssue issue = new SonarIssue();
+                    issue.setRule(node.path("rule").asText(null));
+                    issue.setSeverity(node.path("severity").asText(null));
+                    issue.setType(node.path("type").asText(null));
+                    issue.setMessage(node.path("message").asText(null));
+                    String component = node.path("component").asText("");
+                    int colon = component.indexOf(':');
+                    issue.setFile(colon >= 0 ? component.substring(colon + 1) : component);
+                    if (node.hasNonNull("line")) {
+                        issue.setLine(node.path("line").asInt());
+                    }
+                    issues.add(issue);
+                }
+            }
+        } catch (Exception e) {
+            log.error("Error fetching/parsing Sonar issues", e);
+        }
+        return issues;
     }
 
     // Helper method for parsing the JSON

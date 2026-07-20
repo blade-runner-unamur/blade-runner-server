@@ -396,6 +396,11 @@ components:
         summary:
           type: string
           description: "The generated PR summary text file from the LLM step"
+        sonarIssues:
+          type: array
+          description: "Itemized issues fetched from SonarCloud (bugs, vulnerabilities, code smells)"
+          items:
+            $ref: '#/components/schemas/SonarIssue'
     GithubMetrics:
       type: object
       properties:
@@ -443,6 +448,36 @@ components:
         bugs:
           type: integer
           example: 1
+        coverage:
+          type: number
+          format: float
+          description: "Line coverage percentage reported by Sonar (0-100)."
+          example: 82.5
+
+    SonarIssue:
+      type: object
+      properties:
+        rule:
+          type: string
+          example: "java:S1481"
+        severity:
+          type: string
+          description: "Sonar severity"
+          example: "MAJOR"
+        type:
+          type: string
+          description: "Sonar issue type"
+          example: "CODE_SMELL"
+        file:
+          type: string
+          description: "Path of the file the issue is in"
+          example: "gson/src/main/java/com/google/gson/Gson.java"
+        line:
+          type: integer
+          example: 142
+        message:
+          type: string
+          example: "Remove this unused import."
 
     ProjectMetadata:
       type: object
