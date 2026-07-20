@@ -5,6 +5,8 @@ info:
   version: 1.0.0
 
 servers:
+  - url: https://bladerunner.mozzon.net
+    description: Production
   - url: http://localhost:8080
     description: Local development
 

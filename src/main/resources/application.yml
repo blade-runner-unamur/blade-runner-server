@@ -1,3 +1,6 @@
+server:
+  forward-headers-strategy: framework
+
 springdoc:
   swagger-ui:
     url: /openapi.yaml
@@ -10,7 +13,7 @@ spring:
     password: password
   h2:
     console:
-      enabled: true
+      enabled: false
       path: /h2-console
 
   jpa:
@@ -36,8 +39,7 @@ token:
   sonar-token: ${SONAR_TOKEN:SOME_UNAMUR_TOKEN}
 
 app:
-  url: ${APP_URL:YOURS_OR_NGROK} # Used to expose the backend URL to the frontend and the git worker
-#  url: ${APP_URL:http://localhost:8080}
+  url: ${APP_URL:http://localhost:8080}
   github-url: 'https://api.github.com'
   github-owner: ${APP_GITHUB_OWNER:blade-runner-unamur}
   github-worker-repo: ${APP_GITHUB_WORKER_REPO:blade-runner-worker}
