@@ -31,8 +31,6 @@ public class RemoteRepositoryServiceImpl implements RemoteRepositoryService {
 
     @Override
     public List<Map<String, Object>> listPR(String repositoryUrl) {
-        // Extract owner and repo from URL
-        // Example: https://github.com/pjalbrz16/my-app.git -> ["pjalbrz16", "my-app"]
         String path = repositoryUrl.replace("https://github.com/", "").replace(".git", "");
         String[] parts = path.split("/");
         String owner = parts[0];
@@ -45,11 +43,11 @@ public class RemoteRepositoryServiceImpl implements RemoteRepositoryService {
     public void triggerScannerForPullRequest(URI projectUrl, String prId) {
 
         Map<String, Object> variables = Map.of(
-                "ref", "main", // The branch where the workflow file exists
+                "ref", "main",
                 "inputs", Map.of(
                         "prId", prId,
                         "projectUrl", projectUrl,
-                        "backendUrl", appProperties.getUrl() // Should be the URL of the backend, the address given by ngrok !
+                        "backendUrl", appProperties.getUrl()
                 )
         );
 
@@ -68,13 +66,11 @@ public class RemoteRepositoryServiceImpl implements RemoteRepositoryService {
         PullRequestMetadata pullRequestMetadata;
         if (existing.isPresent()) {
             pullRequestMetadata = existing.get();
-            // Clear existing files and chunks before rebuilding
             PullRequestMetadata newMetadata = diffVisualizerService.buildEntitiesFromDiff(owner, repository, prNum, diff);
-            
+
             pullRequestMetadata.setRawDiff(diff);
             pullRequestMetadata.setCachedSvg(generatedSvgFromDiff);
-            
-            // Re-sync files
+
             pullRequestMetadata.getFiles().clear();
             for (org.unamur.persistence.FileDiffMetadata file : newMetadata.getFiles()) {
                 pullRequestMetadata.addFile(file);
